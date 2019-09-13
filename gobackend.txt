@@ -1,0 +1,113 @@
+Back End
+
+=== Routing ===
+- To install Gorilla mux
+go get -u github.com/gorilla/mux
+go get -u github.com/gorilla/handlers
+go doc http.Request.FormValue 
+brew install ffmpeg
+
+=== MYSQL ===
+
+-Get mysql image
+docker pull mysql
+
+- Run MYSQL server
+docker run --name gopherfacemysql -d -p 3306:3306 -e MYSQL_ROOT_PASSWORD=gopherface mysql 
+
+- Run MYSQL client
+docker run -it --link gopherfacemysql:mysql --rm mysql sh -c 'exec mysql -h"$MYSQL_PORT_3306_TCP_ADDR" -P"$MYSQL_PORT_3306_TCP_PORT" -uroot -p"gopherface"'
+
+- Create MYSQL user
+CREATE USER 'gopherface'@'%' IDENTIFIED BY 'gopherface';
+
+- Create database
+CREATE DATABASE IF NOT EXISTS `gophergacedb` DEFAULT CHARACTER SET `utf8` COLLATE `utf8_unicode_ci`;
+
+- Grant privileges to gopherface over the db
+GRANT ALL PRIVILEGES ON gopherfacedb.* TO 'gopherface'@'%';
+
+- Flush privileges so the changes take effect immediately
+FLUSH PRIVILEGES;
+
+- Copy the SQL script into container mysql client. Go to the location of the file and
+docker cp gopherfacedb.sql gifted_williams:/tmp/.
+
+- Execute the file, go to MYSQL console
+source /tmp/gopherfacedb.sql
+
+- See the user table
+desc user;
+
+- Run code
+./gopherfacedb the signup
+
+- Check user
+Select * from user where username="raga"
+
+=== Mongo DB ===
+docker pull mongo
+
+- Run server
+docker run -p 27017:27017 --name gopherfacemongo -d mongo
+
+- Connect to db
+docker exec -it gopherfacemongo mongo
+
+- To get help type
+db.help()
+
+- Create a collection
+db.createCollection("foo")
+
+- Insert and retrieve data
+db.foo.insert({"foo1":"bar1", "foo2":"bar2"})
+db.foo.find({"foo1":"bar1"}).pretty()
+
+- Launch application and use for to create a user. Verify with
+use gopherface
+db.User.find({"username":"raga"}).pretty()
+
+
+=== Redis ===
+In memory db
+Memory cache
+Message broker
+
+docker pull redis
+
+- Run it
+docker run -p 6379:6379 --name gopherfaceredis  -d redis
+
+- To connect
+docker exec -it gopherfaceredis redis-cli
+
+- Create a record key-value
+set foo bar
+get foo
+
+
+=== Authentication/Authorization ===
+TLS Transport Layer Security
+To generate the certificate and the private key
+openssl req \
+-x509 \
+-nodes \
+-new \
+-out gopherfacecert.pem \
+-keyout gopherfacekey.pem \
+-subj "/CN=gopherface.local" \
+-reqexts SAN \
+-extensions SAN \
+-config <(cat /System/Library/OpenSSL/openssl.cnf \
+ <(printf '[SAN]\nsubjectAltName=DNS:gopherface.local')) \
+-newkey rsa:2048 \
+-days 10800 
+
+- Create local custom domain
+Edit /etc/host file
+
+- Double click on the certificate and keychain program will open. Make sure All Trust is set for the certificate
+
+- Put has key and block key in cookie.go. Also make sure that the path in init() session.go exist, it will return an error if it doesn't.
+
